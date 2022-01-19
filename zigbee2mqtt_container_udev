@@ -1,0 +1,27 @@
+#!/bin/bash
+
+container_name="zigbee2mqtt"
+delay="10s"
+d="/usr/bin/docker"
+device="/dev/ttyACM0"
+
+if [ "$1" = "udevfile" ]; then
+        device_info="$(/sbin/udevadm info -n ${device})"
+        device_vendor=$(echo "${device_info}" | grep '^E: ID_VENDOR=' | cut -f2 -d=)
+        device_model=$(echo "${device_info}" | grep '^E: ID_MODEL=' | cut -f2 -d=)
+        device_serial=$(echo "${device_info}" | grep '^E: ID_SERIAL=' | cut -f2 -d=)
+        echo 'To get this scipt work an udev file needs to be created'
+        echo "  put the below content into /etc/udev/rules.d/99-$(echo "${0##*/}").rules"
+        echo '#ACTION=="add", KERNEL=="tty*", ATTRS{vendor}=="'${device_vendor}'", ATTRS{model}=="'${device_model}'", ATTRS{serial}=="'${device_serial}'", RUN+="'$0'"'
+        echo 'ACTION=="add", KERNEL=="ttyACM0", RUN+="'$0'"'
+        exit 0
+fi
+
+( date;
+  echo "dollar star: $*"
+  echo "usb device appeared, starting container in ${delay}"
+) | mail -s "${container_name} container starting" root
+
+sleep "${delay}"
+
+${d} container ls | grep -q "${container_name}" || ${d} start "${container_name}"
