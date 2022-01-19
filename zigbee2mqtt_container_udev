@@ -18,7 +18,6 @@ if [ "$1" = "udevfile" ]; then
 fi
 
 ( date;
-  echo "dollar star: $*"
   echo "usb device appeared, starting container in ${delay}"
 ) | mail -s "${container_name} container starting" root
 
